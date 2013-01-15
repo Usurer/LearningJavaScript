@@ -9,7 +9,7 @@ d.style.backgroundColor = "Black";
 
 var increase = false;
 
-(function loop1() {
+function loop1() {
 	var d = document.getElementsByTagName('div')[0];
 	var w = parseInt(d.style.width);
 	
@@ -31,4 +31,6 @@ var increase = false;
 	
 	
 	window.requestAnimFrame(loop1);	
-})();
+};
+
+loop1();
