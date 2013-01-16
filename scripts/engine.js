@@ -22,7 +22,8 @@ function MainLoop() {
 		};
 	};
 	
-	/*	Take a look at http://jsfiddle.net/HwR9N/3/
+	/*	
+		Take a look at http://jsfiddle.net/HwR9N/3/
 		The main idea there to use keys[e.keyCode] array to store pressed keys.
 		If key is released, keys[e.keyCode] is set to non-numeral value like False.
 		Dadz cool.
@@ -39,9 +40,6 @@ function MainLoop() {
 			self.pressedKeys.push(pressedKey);
 		};
 		
-		/*if (pressedKey != null)
-			self.pressedKeys.push(pressedKey);*/
-		
 		new DebuggingMessage().pressedBtn(self.pressedKeys);
 	};
 	
@@ -57,7 +55,20 @@ function MainLoop() {
 		new DebuggingMessage().pressedBtn(self.pressedKeys);
 	};	
 	
-	this.run = function() {		
+	this.run = function() {
+		var object1 = new MovingObject();
+		object1.initialize([50, 50], [50, 50], '', 'Red');
+		self.gameObjects.push(object1);	
+		var canvas = document.getElementById('canvas');
+		var objDiv = document.createElement('div');
+		objDiv.style.width = object1.width + 'px';
+		objDiv.style.height = object1.height + 'px';
+		objDiv.style.position = 'relative';
+		objDiv.style.top = object1.y - object1.height/2;
+		objDiv.style.left = object1.x - object1.width/2;
+		objDiv.style.background = object1.background;
+		canvas.appendChild(objDiv);
+		
 		document.onkeydown = keyDownHandler;
 		document.onkeyup = keyUpHandler;
 		/*var updater = setInterval(function(){}, 1000 / this.ups);

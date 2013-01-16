@@ -7,22 +7,24 @@ function Sprite() {
 	this.sprite = '';
 	this.background = "Transparent";
 	
+	var self = this;
+	
 	this.getPosition = function() {
-		return [this.x, this.y];
+		return [self.x, self.y];
 	};
 	
 	this.getSize = function() {
-		return [this.width, this.height];
+		return [self.width, self.height];
 	};
 	
 	var setSize = function(size) {
-		this.width = size[0];
-		this.height = size[1];
+		self.width = size[0];
+		self.height = size[1];
 	};
 	
 	var setPosition = function(position) {
-		this.x = position[0];
-		this.y = position[1];
+		self.x = position[0];
+		self.y = position[1];
 	};
 	
 	this.initialize = function(position, size, spriteUrl, backgroundColor) {
@@ -31,8 +33,8 @@ function Sprite() {
 		
 		setPosition(position);
 		setSize(size);
-		this.sprite = spriteUrl;
-		this.background = typeof backgroundColor === 'undefined' ? 'Transparent' : backgroundColor;
+		self.sprite = spriteUrl;
+		self.background = typeof backgroundColor === 'undefined' ? 'Transparent' : backgroundColor;
 	}
 }
 
@@ -41,21 +43,23 @@ function MovingObject() {
 	this.moves = false;	
 	this.direction = 'n'; //n,s,w,e
 	
+	var self = this;
+	
 	this.start = function() {
-		this.moves = true;
+		self.moves = true;
 	};	
 	
 	this.move = function() {
-		if (!this.moves)
+		if (!self.moves)
 			return;
-		var posChangeX = this.speed[0] * (this.direction == 'e' ? 1 : this.direction == 'w' ? -1 : 0);
-		var posChangeY = this.speed[1] * (this.direction == 's' ? 1 : this.direction == 'n' ? -1 : 0);
-		this.x = this.x + posChangeX;
-		this.y = this.y + posChangeY;		
+		var posChangeX = self.speed[0] * (self.direction == 'e' ? 1 : self.direction == 'w' ? -1 : 0);
+		var posChangeY = self.speed[1] * (self.direction == 's' ? 1 : self.direction == 'n' ? -1 : 0);
+		self.x = self.x + posChangeX;
+		self.y = self.y + posChangeY;		
 	};
 	
 	this.stop = function() {
-		this.moves = false;
+		self.moves = false;
 	}
 }
 
