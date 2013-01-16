@@ -59,5 +59,5 @@ function MovingObject() {
 	}
 }
 
-MovingObject.prototype = Sprite;
+MovingObject.prototype = new Sprite();
 MovingObject.prototype.constructor = MovingObject;

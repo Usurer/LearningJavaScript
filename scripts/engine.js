@@ -14,10 +14,10 @@ function MainLoop() {
 			case 38: return 'n';
 			case 39: return 'e';
 			case 40: return 's';
-			case 87: return 'W';
-			case 83: return 'S';
-			case 65: return 'A';
-			case 68: return 'D';
+			case 87: return 'N'; //W
+			case 83: return 'S'; //A
+			case 65: return 'W'; //S
+			case 68: return 'E'; //D
 			default: return null;
 		};
 	};
