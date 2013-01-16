@@ -22,6 +22,11 @@ function MainLoop() {
 		};
 	};
 	
+	/*	Take a look at http://jsfiddle.net/HwR9N/3/
+		The main idea there to use keys[e.keyCode] array to store pressed keys.
+		If key is released, keys[e.keyCode] is set to non-numeral value like False.
+		Dadz cool.
+	*/
 	var keyDownHandler = function(e) {
 		var pressedKey = keyCodeMapper(e.keyCode);
 		
