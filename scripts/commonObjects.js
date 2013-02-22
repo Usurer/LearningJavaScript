@@ -1,3 +1,7 @@
+function CommonObject() {
+	this.id = -100;
+}
+
 function Sprite() {
 	this.x = 0;
 	this.y = 0;
@@ -39,11 +43,14 @@ function Sprite() {
 }
 
 function MovingObject() {
+	MovingObject.superclass.constructor.call(this) 
 	this.speed = [0, 0];
 	this.moves = false;	
 	this.direction = 'n'; //n,s,w,e
-	
 	var self = this;
+
+	if (typeof arguments[0] !== 'undefined') 
+		self.id = arguments[0];	
 	
 	this.start = function() {
 		self.moves = true;
@@ -63,5 +70,20 @@ function MovingObject() {
 	}
 }
 
+function extend(Child, Parent) {
+    var F = function() { };
+    F.prototype = Parent.prototype;
+    Child.prototype = new F();
+    Child.prototype.constructor = Child;
+    Child.superclass = Parent.prototype;
+}
+
+extend(Sprite, CommonObject);
+extend(MovingObject, Sprite);
+
+/*Sprite.prototype = new CommonObject();
+Sprite.prototype.constructor = Sprite;
+
 MovingObject.prototype = new Sprite();
-MovingObject.prototype.constructor = MovingObject;
+MovingObject.prototype.constructor = MovingObject;*/
+//http://jsfiddle.net/R2YTj/

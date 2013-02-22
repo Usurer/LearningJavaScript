@@ -53,24 +53,46 @@ function MainLoop() {
 			}
 		};
 		new DebuggingMessage().pressedBtn(self.pressedKeys);
-	};	
-	
-	this.run = function() {
-		var object1 = new MovingObject();
+	};
+
+	this.createFirstTank = function() {
+		var object1 = new MovingObject(0);
 		object1.initialize([50, 50], [50, 50], '', 'Red');
-		self.gameObjects.push(object1);	
+		self.gameObjects[object1.id] = object1;
+	};
+
+	this.createSecondTank = function() {
+		var object2 = new MovingObject(1);
+		object2.initialize([200, 200], [50, 50], '', 'Blue');
+		self.gameObjects[object2.id] = object2;
+	};
+
+	this.initTanks = function() {
 		var canvas = document.getElementById('canvas');
-		var objDiv = document.createElement('div');
-		objDiv.style.width = object1.width + 'px';
-		objDiv.style.height = object1.height + 'px';
-		objDiv.style.position = 'relative';
-		objDiv.style.top = object1.y - object1.height/2;
-		objDiv.style.left = object1.x - object1.width/2;
-		objDiv.style.background = object1.background;
-		canvas.appendChild(objDiv);
+		for (var i = 0; i < self.gameObjects.length; i++) {
+			if (typeof self.gameObjects[i] === 'undefined')
+				continue;
+			var object1 = self.gameObjects[i];
+			var objDiv = document.createElement('div');
+			objDiv.style.width = object1.width + 'px';
+			objDiv.style.height = object1.height + 'px';
+			objDiv.style.position = 'relative';
+			objDiv.style.top = object1.y - object1.height/2;
+			objDiv.style.left = object1.x - object1.width/2;
+			objDiv.style.background = object1.background;
+			canvas.appendChild(objDiv);		
+		};
+	};
+	
+	this.run = function() {		
+		self.createFirstTank();
+		self.createSecondTank();
+		self.initTanks();
 		
 		document.onkeydown = keyDownHandler;
 		document.onkeyup = keyUpHandler;
+
+		new DebuggingMessage().textMsg(self.gameObjects.length);
 		/*var updater = setInterval(function(){}, 1000 / this.ups);
 		var drawer = setInterval(function(){}, 1000 / this.fps);*/
 	};
@@ -83,7 +105,11 @@ function DebuggingMessage() {
 			msg = msg + btnsArray[btn];
 		}
 		document.getElementById('pressedButtons').innerHTML = msg;
-	};	
+	};
+
+	this.textMsg = function(textMsg) {
+		document.getElementById('message').innerHTML = textMsg;	
+	}
 }
 
 new MainLoop().run();
