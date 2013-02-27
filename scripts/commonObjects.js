@@ -39,14 +39,23 @@ function Sprite() {
 		setSize(size);
 		self.sprite = spriteUrl;
 		self.background = typeof backgroundColor === 'undefined' ? 'Transparent' : backgroundColor;
-	}
+	};
+
+	this.draw = function() {
+		var el = document.getElementById(self.id);
+		if(typeof el !== 'undefined') {
+			el.style.top = self.y - self.height/2;
+			el.style.left = self.x - self.width/2;
+		}
+	};
 }
 
 function MovingObject() {
 	MovingObject.superclass.constructor.call(this) 
-	this.speed = [0, 0];
+	this.speed = [1, 1];
 	this.moves = false;	
-	this.direction = 'n'; //n,s,w,e
+	this.direction = 'n'; //n,s,w,e	
+	var commandsMap = {};
 	var self = this;
 
 	if (typeof arguments[0] !== 'undefined') 
@@ -55,6 +64,10 @@ function MovingObject() {
 	this.start = function() {
 		self.moves = true;
 	};	
+
+	this.stop = function() {
+		self.moves = false;
+	};
 	
 	this.move = function() {
 		if (!self.moves)
@@ -63,11 +76,48 @@ function MovingObject() {
 		var posChangeY = self.speed[1] * (self.direction == 's' ? 1 : self.direction == 'n' ? -1 : 0);
 		self.x = self.x + posChangeX;
 		self.y = self.y + posChangeY;		
+	};	
+
+	this.resetCommands = function() {
+		console.log(self.id + ' resetCommands');
+		self.stop();
 	};
-	
-	this.stop = function() {
-		self.moves = false;
-	}
+
+	this.setDirection = function(direction) {
+		if(direction === 'S') {
+			self.direction = 's'; self.start();//console.log(self.id + ' s move');
+		} else if (direction === 'N') {
+			self.direction = 'n'; self.start();//console.log(self.id + ' n move');
+		} else if (direction === 'E') {
+			self.direction = 'e'; self.start();//console.log(self.id + ' stop');
+		} else if (direction === 'W') {
+			self.direction = 'w'; self.start();//console.log(self.id + ' stop');
+		}		
+	};
+
+	this.receiveCommands = function(pressedKeysArray) {
+		self.resetCommands();
+		for (var i = 0; i < pressedKeysArray.length; i++) {
+			self.runMappedCommands(pressedKeysArray[i]);			
+			/*if (pressedKeysArray[i] === 'S') {
+				self.direction = 's';
+				self.start();
+			}*/
+		};
+	};
+
+	this.update = function() {
+		self.move();		
+	};
+
+	this.setCommandsMap = function(map) {
+		self.commandsMap = map;
+	};
+
+	this.runMappedCommands = function(commandKey) {						
+		if (typeof self[self.commandsMap[commandKey]] !== 'undefined')
+			self[self.commandsMap[commandKey]](commandKey.toUpperCase());
+	};
 }
 
 function extend(Child, Parent) {
@@ -80,10 +130,4 @@ function extend(Child, Parent) {
 
 extend(Sprite, CommonObject);
 extend(MovingObject, Sprite);
-
-/*Sprite.prototype = new CommonObject();
-Sprite.prototype.constructor = Sprite;
-
-MovingObject.prototype = new Sprite();
-MovingObject.prototype.constructor = MovingObject;*/
 //http://jsfiddle.net/R2YTj/

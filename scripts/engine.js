@@ -5,6 +5,7 @@ function MainLoop() {
 	this.gameObjects = [];	
 	this.globals = [];
 	this.pressedKeys = [];
+	this.tanks = [];
 	
 	var self = this;
 	
@@ -56,31 +57,54 @@ function MainLoop() {
 	};
 
 	this.createFirstTank = function() {
-		var object1 = new MovingObject(0);
-		object1.initialize([50, 50], [50, 50], '', 'Red');
-		self.gameObjects[object1.id] = object1;
+		var newTank = new MovingObject(0);
+		var map = {'S': 'setDirection', 'N': 'setDirection', 'E': 'setDirection', 'W': 'setDirection'};
+		newTank.setCommandsMap(map);
+		newTank.initialize([50, 50], [50, 50], '', 'Red');
+		self.gameObjects[newTank.id] = newTank;
+		self.tanks[0] = newTank;
 	};
 
 	this.createSecondTank = function() {
-		var object2 = new MovingObject(1);
-		object2.initialize([200, 200], [50, 50], '', 'Blue');
-		self.gameObjects[object2.id] = object2;
+		var newTank = new MovingObject(1);
+		var map = {'s': 'setDirection', 'n': 'setDirection', 'e': 'setDirection', 'w': 'setDirection'};
+		newTank.setCommandsMap(map);
+		newTank.initialize([200, 200], [50, 50], '', 'Blue');
+		self.gameObjects[newTank.id] = newTank;
+		self.tanks[1] = newTank;
 	};
 
 	this.initTanks = function() {
 		var canvas = document.getElementById('canvas');
+		var currentObject = undefined;
 		for (var i = 0; i < self.gameObjects.length; i++) {
 			if (typeof self.gameObjects[i] === 'undefined')
 				continue;
-			var object1 = self.gameObjects[i];
+			currentObject = self.gameObjects[i];
 			var objDiv = document.createElement('div');
-			objDiv.style.width = object1.width + 'px';
-			objDiv.style.height = object1.height + 'px';
+			objDiv.setAttribute('id', self.gameObjects[i].id);
+			objDiv.style.width = currentObject.width + 'px';
+			objDiv.style.height = currentObject.height + 'px';
 			objDiv.style.position = 'relative';
-			objDiv.style.top = object1.y - object1.height/2;
-			objDiv.style.left = object1.x - object1.width/2;
-			objDiv.style.background = object1.background;
+			objDiv.style.top = currentObject.y - currentObject.height/2;
+			objDiv.style.left = currentObject.x - currentObject.width/2;
+			objDiv.style.background = currentObject.background;
 			canvas.appendChild(objDiv);		
+		};
+	};
+
+	this.draw = function() {		
+		console.log('tick');
+		for (var j = 0; j < self.gameObjects.length; j++) {
+			if(typeof self.gameObjects[j].receiveCommands !== 'undefined')
+				self.gameObjects[j].receiveCommands(self.pressedKeys);
+
+			if(typeof self.gameObjects[j].update !== 'undefined')
+				self.gameObjects[j].update();
+
+			if(typeof self.gameObjects[j].draw === 'undefined')
+				continue;			
+			self.gameObjects[j].draw();
 		};
 	};
 	
@@ -93,6 +117,8 @@ function MainLoop() {
 		document.onkeyup = keyUpHandler;
 
 		new DebuggingMessage().textMsg(self.gameObjects.length);
+
+		var drawer = setInterval(self.draw, 1000 / this.fps);
 		/*var updater = setInterval(function(){}, 1000 / this.ups);
 		var drawer = setInterval(function(){}, 1000 / this.fps);*/
 	};
