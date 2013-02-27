@@ -57,7 +57,7 @@ function MainLoop() {
 	};
 
 	this.createFirstTank = function() {
-		var newTank = new MovingObject(0);
+		var newTank = new Tank(0);
 		var map = {'S': 'setDirection', 'N': 'setDirection', 'E': 'setDirection', 'W': 'setDirection'};
 		newTank.setCommandsMap(map);
 		newTank.initialize([50, 50], [50, 50], '', 'Red');
@@ -66,7 +66,7 @@ function MainLoop() {
 	};
 
 	this.createSecondTank = function() {
-		var newTank = new MovingObject(1);
+		var newTank = new Tank(1);
 		var map = {'s': 'setDirection', 'n': 'setDirection', 'e': 'setDirection', 'w': 'setDirection'};
 		newTank.setCommandsMap(map);
 		newTank.initialize([200, 200], [50, 50], '', 'Blue');

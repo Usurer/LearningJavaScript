@@ -55,7 +55,7 @@ function MovingObject() {
 	this.speed = [1, 1];
 	this.moves = false;	
 	this.direction = 'n'; //n,s,w,e	
-	var commandsMap = {};
+	
 	var self = this;
 
 	if (typeof arguments[0] !== 'undefined') 
@@ -76,12 +76,7 @@ function MovingObject() {
 		var posChangeY = self.speed[1] * (self.direction == 's' ? 1 : self.direction == 'n' ? -1 : 0);
 		self.x = self.x + posChangeX;
 		self.y = self.y + posChangeY;		
-	};	
-
-	this.resetCommands = function() {
-		console.log(self.id + ' resetCommands');
-		self.stop();
-	};
+	};		
 
 	this.setDirection = function(direction) {
 		if(direction === 'S') {
@@ -93,21 +88,28 @@ function MovingObject() {
 		} else if (direction === 'W') {
 			self.direction = 'w'; self.start();//console.log(self.id + ' stop');
 		}		
-	};
+	};	
+
+	this.update = function() {
+		self.move();		
+	};	
+}
+
+function Tank(){
+	Tank.superclass.constructor.call(this, arguments[0])
+
+	this.commandsMap = {};
+	var self = this;
 
 	this.receiveCommands = function(pressedKeysArray) {
 		self.resetCommands();
 		for (var i = 0; i < pressedKeysArray.length; i++) {
-			self.runMappedCommands(pressedKeysArray[i]);			
-			/*if (pressedKeysArray[i] === 'S') {
-				self.direction = 's';
-				self.start();
-			}*/
+			self.runMappedCommands(pressedKeysArray[i]);						
 		};
 	};
 
-	this.update = function() {
-		self.move();		
+	this.resetCommands = function() {
+		self.stop();
 	};
 
 	this.setCommandsMap = function(map) {
@@ -118,6 +120,7 @@ function MovingObject() {
 		if (typeof self[self.commandsMap[commandKey]] !== 'undefined')
 			self[self.commandsMap[commandKey]](commandKey.toUpperCase());
 	};
+
 }
 
 function extend(Child, Parent) {
@@ -130,4 +133,5 @@ function extend(Child, Parent) {
 
 extend(Sprite, CommonObject);
 extend(MovingObject, Sprite);
+extend(Tank, MovingObject);
 //http://jsfiddle.net/R2YTj/
