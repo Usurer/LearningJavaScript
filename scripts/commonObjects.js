@@ -43,7 +43,7 @@ function Sprite() {
 
 	this.draw = function() {
 		var el = document.getElementById(self.id);
-		if(typeof el !== 'undefined') {
+		if(el != null && typeof el !== 'undefined') {
 			el.style.top = self.y - self.height/2;
 			el.style.left = self.x - self.width/2;
 		}
@@ -96,16 +96,18 @@ function MovingObject() {
 }
 
 function Tank(){
-	Tank.superclass.constructor.call(this, arguments[0])
-
+	Tank.superclass.constructor.call(this, arguments[0]);
 	this.commandsMap = {};
+	this.missiles = [];
 	var self = this;
 
 	this.receiveCommands = function(pressedKeysArray) {
 		self.resetCommands();
+		var commandsResult = [];
 		for (var i = 0; i < pressedKeysArray.length; i++) {
-			self.runMappedCommands(pressedKeysArray[i]);						
+			commandsResult.push(self.runMappedCommands(pressedKeysArray[i]));
 		};
+		return commandsResult;
 	};
 
 	this.resetCommands = function() {
@@ -118,10 +120,21 @@ function Tank(){
 
 	this.runMappedCommands = function(commandKey) {						
 		if (typeof self[self.commandsMap[commandKey]] !== 'undefined')
-			self[self.commandsMap[commandKey]](commandKey.toUpperCase());
+			return self[self.commandsMap[commandKey]](commandKey.toUpperCase());
+	};
+
+	this.fire = function() {
+		var missile = new Missile();
+		missile.initialize(self.getPosition(), [10, 10], '', 'White');
+		return missile;
 	};
 
 }
+
+function Missile() {
+	Missile.superclass.constructor.call(this);
+	var self = this;
+};
 
 function extend(Child, Parent) {
     var F = function() { };
@@ -134,4 +147,5 @@ function extend(Child, Parent) {
 extend(Sprite, CommonObject);
 extend(MovingObject, Sprite);
 extend(Tank, MovingObject);
+extend(Missile, MovingObject);
 //http://jsfiddle.net/R2YTj/
