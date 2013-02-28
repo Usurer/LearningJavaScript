@@ -1,15 +1,19 @@
 function CommonObject() {
-	this.id = -100;
+	this.id = undefined;
+	this.age = 0;
+	this.maxAge = 0;
+	this.dead = false;
 }
 
 function Sprite() {
+	Sprite.superclass.constructor.call(this);
 	this.x = 0;
 	this.y = 0;
 	this.visible = false;
 	this.height = 0;
 	this.width = 0;
 	this.sprite = '';
-	this.background = "Transparent";
+	this.background = "Transparent";			
 	
 	var self = this;
 	
@@ -90,8 +94,13 @@ function MovingObject() {
 		}		
 	};	
 
-	this.update = function() {
+	this.update = function() {		
+		if(this.age > this.maxAge) {
+			this.dead = true;
+		}
 		self.move();		
+		if(this.maxAge > 0)
+			this.age++;
 	};	
 }
 
@@ -134,6 +143,7 @@ function Tank(){
 function Missile() {
 	Missile.superclass.constructor.call(this);
 	var self = this;
+	self.maxAge = 100;	
 };
 
 function extend(Child, Parent) {

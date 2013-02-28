@@ -6,6 +6,8 @@ function MainLoop() {
 	this.globals = [];
 	this.pressedKeys = [];
 	this.tanks = [];
+	this.missiles = [];
+	this.deadObjects = [];
 	
 	var self = this;
 	
@@ -111,7 +113,10 @@ function MainLoop() {
 		};*/
 
 		var newObjects = [];
+		var canvas = document.getElementById('canvas');
 		for (var j = 0; j < self.gameObjects.length; j++) {
+			if(typeof self.gameObjects[j] === 'undefined')
+				continue;
 			if(typeof self.gameObjects[j].receiveCommands !== 'undefined') {
 				/*A trick to join two arrays without a new array creation (as concat does). It's also faster than concat. 
 				See also: http://jsperf.com/concat-vs-push-apply/11 */			
@@ -126,6 +131,7 @@ function MainLoop() {
 			self.gameObjects[j].draw();
 		};
 		
+		//TODO: Refactor it!
 		if (newObjects.length > 0) {
 			for (var i = 0; i < newObjects.length; i++) {
 				if (typeof newObjects[i] === 'undefined')
@@ -134,7 +140,7 @@ function MainLoop() {
 				if (typeof currentObject.id === 'undefined') 
 					currentObject.id = self.gameObjects.length + i;
 				var objDiv = document.createElement('div');
-				objDiv.setAttribute('id', self.gameObjects[i].id);
+				objDiv.setAttribute('id', currentObject.id);
 				objDiv.style.width = currentObject.width + 'px';
 				objDiv.style.height = currentObject.height + 'px';
 				objDiv.style.position = 'relative';
@@ -148,6 +154,31 @@ function MainLoop() {
 
 			//self.gameObjects.push.apply(self.gameObjects, newObjects); - it will also add 'undefined' values to gameObjects, so don't use it;
 		};
+
+		//Now I want remove dead objects from the gameObjects list. Dead object is the one that should be removed from the game, like finished tank burst animation etc.
+		for (var i = 0; i < self.gameObjects.length; i++) {
+			if(typeof self.gameObjects[i] === 'undefined')
+				continue;
+			if(self.gameObjects[i].dead === true)
+			{
+				self.deadObjects.push(self.gameObjects[i]);
+				self.gameObjects[i] = undefined;
+			}
+		};
+		
+		for (var i = 0; i < self.deadObjects.length; i++) {
+			var el = document.getElementById(self.deadObjects[i].id);
+			if (el.parentElement == canvas)
+				canvas.removeChild(el);
+		};
+
+		var indexOfUndefined = self.gameObjects.indexOf(undefined);
+		while(indexOfUndefined >= 0) {
+			self.gameObjects.splice(indexOfUndefined, 1);
+			indexOfUndefined = self.gameObjects.indexOf(undefined);
+		};
+
+		self.deadObjects = [];
 	};
 	
 	this.run = function() {		
