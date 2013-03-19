@@ -1,5 +1,5 @@
 function MainLoop() {
-	this.fps = 50; //draw loops per second
+	this.fps = 25; //draw loops per second
 	this.ups = 20; //update loops per second
 	
 	this.gameObjects = [];	
@@ -8,6 +8,7 @@ function MainLoop() {
 	this.tanks = [];
 	this.missiles = [];
 	this.deadObjects = [];
+	this.tileMapTanks = [];
 	
 	var self = this;
 	
@@ -34,7 +35,7 @@ function MainLoop() {
 		Dadz cool.
 	*/
 	var keyDownHandler = function(e) {
-		console.log(e.keyCode);
+		//console.log(e.keyCode);
 		var pressedKey = keyCodeMapper(e.keyCode);
 		
 		if (pressedKey != null) {
@@ -90,7 +91,7 @@ function MainLoop() {
 			objDiv.setAttribute('id', self.gameObjects[i].id);
 			objDiv.style.width = currentObject.width + 'px';
 			objDiv.style.height = currentObject.height + 'px';
-			objDiv.style.position = 'relative';
+			objDiv.style.position = 'fixed';
 			objDiv.style.top = currentObject.y - currentObject.height/2;
 			objDiv.style.left = currentObject.x - currentObject.width/2;
 			objDiv.style.background = currentObject.background;
@@ -99,7 +100,7 @@ function MainLoop() {
 	};
 
 	this.draw = function() {		
-		console.log('tick');
+		//console.log('tick');
 
 		
 		/*Here are the bad news - we cannot fire missile from the Tank class in current object model realization, because only game engine has access to gameObjects, globals etc. I see three ways to solve the problem:
@@ -178,20 +179,60 @@ function MainLoop() {
 			indexOfUndefined = self.gameObjects.indexOf(undefined);
 		};
 
+		/*---Check for collisions---*/
+		var i = 0; var c = 0; var tankIndex = 0; var t = 0;
+		var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
+		var tileMapTanksWidth = (canvasWH[0] / self.tanks[0].getSize()[0]) |0;
+		var tileMapTanksHeight = (canvasWH[1] / self.tanks[0].getSize()[1]) |0;
+		for(var i = 0; i < tileMapTanksWidth; i++) {
+			var column = new Array(tileMapTanksHeight);
+			for (var c = 0; c < column.length; c++) column[c] = [];
+			self.tileMapTanks[i] = column;
+		};
+		for (var tankIndex = 0; tankIndex < self.tanks.length; tankIndex++) {
+			var t = self.tanks[tankIndex];
+			var tankTileCoord = [(t.getPosition()[0] / t.getSize()[0]) |0, (t.getPosition()[1] / t.getSize()[1]) |0];
+			self.tileMapTanks[tankTileCoord[0]][tankTileCoord[1]].push(t);
+		};
+		var t = 0;
+		for (var t = 0; t < self.tanks.length; t++) PossibleCollisions(self.tanks[t], self.tileMapTanks, canvas);
+		/*---Check for collisions end---*/
+
 		self.deadObjects = [];
+
+		setTimeout(self.draw, 1000 / self.fps);
 	};
 	
 	this.run = function() {		
 		self.createFirstTank();
 		self.createSecondTank();
 		self.initTanks();
+
+		/*What I do below is saving tanks objects to tile map in accordance with tanks' positions.
+		There is an assumption that canvas.width / tank.width is an integer. */
+		/*var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
+		var tileMapTanksWidth = (canvasWH[0] / self.tanks[0].getSize()[0]) |0;
+		var tileMapTanksHeight = (canvasWH[1] / self.tanks[0].getSize()[1]) |0;
+		for(var i = 0; i < tileMapTanksWidth; i++) {
+			var column = new Array(tileMapTanksHeight);
+			for (var c = 0; c < column.length; c++) column[c] = [];
+			self.tileMapTanks[i] = column;
+		};
+
+		for (var tankIndex = 0; tankIndex < self.tanks.length; tankIndex++) {
+			var t = self.tanks[tankIndex];
+			var tankTileCoord = [(t.getPosition()[0] / t.getSize()[0]) |0, (t.getPosition()[1] / t.getSize()[1]) |0]
+			self.tileMapTanks[tankTileCoord[0], tankTileCoord[1]][0].push(t);
+		};*/
 		
 		document.onkeydown = keyDownHandler;
 		document.onkeyup = keyUpHandler;
 
 		new DebuggingMessage().textMsg(self.gameObjects.length);
 
-		var drawer = setInterval(self.draw, 1000 / this.fps);
+		/*Set interval is bad!!!*/
+		//var drawer = setInterval(self.draw, 1000 / this.fps);
+		var drawer = setTimeout(self.draw, 1000 / self.fps);
 		/*var updater = setInterval(function(){}, 1000 / this.ups);
 		var drawer = setInterval(function(){}, 1000 / this.fps);*/
 	};
