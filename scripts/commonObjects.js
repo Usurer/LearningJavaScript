@@ -45,12 +45,26 @@ function Sprite() {
 		self.background = typeof backgroundColor === 'undefined' ? 'Transparent' : backgroundColor;
 	};
 
-	this.draw = function() {
+	this.draw = function(canvas) {
 		var el = document.getElementById(self.id);
+		if(el == null || typeof el === 'undefined') {
+			if (typeof canvas === 'undefined') return;
+			var currentObject = self;			
+			var objDiv = document.createElement('div');
+			objDiv.setAttribute('id', currentObject.id);
+			objDiv.style.width = currentObject.width + 'px';
+			objDiv.style.height = currentObject.height + 'px';
+			objDiv.style.position = 'fixed';
+			objDiv.style.top = currentObject.y - currentObject.height/2;
+			objDiv.style.left = currentObject.x - currentObject.width/2;
+			objDiv.style.background = currentObject.background;
+			canvas.appendChild(objDiv);				
+		};
+		el = document.getElementById(self.id);
 		if(el != null && typeof el !== 'undefined') {
 			el.style.top = self.y - self.height/2;
 			el.style.left = self.x - self.width/2;
-		}
+		};
 	};
 }
 

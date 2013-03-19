@@ -1,3 +1,7 @@
+/*
+TODO: Warning! Right now PossibleCollisions works bad for different directions. When red (first) tank approaches blue from up and left sides - collision detection works only after them get into each other.
+*/
+
 function PossibleCollisions(tank, tilesMapTanks, canvas) {
 	var tankTileId = GetTankTile(tank, canvas);
 	var tilesX = [tankTileId[0] - 1 < 0 ? 0 : tankTileId[0] - 1
@@ -27,9 +31,9 @@ function PossibleCollisions(tank, tilesMapTanks, canvas) {
 	i = 0;	
 
 	//for(i; i < possibleCollisions.length; i++) console.info(possibleCollisions[i]);
-}
+};
 
 function GetTankTile(tank, canvas) {
 	var canvasSize = [canvas.offsetWidth, canvas.offsetHeight];		
 	return [(tank.getPosition()[0] / tank.getSize()[0]) |0, (tank.getPosition()[1] / tank.getSize()[1]) |0];
-}
+};
