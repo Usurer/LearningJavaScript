@@ -2,13 +2,15 @@ function MainLoop() {
 	this.fps = 50; //draw loops per second
 	this.ups = 20; //update loops per second
 	
-	this.gameObjects = [];	
+	this.gameObjects = [];		
 	this.globals = [];
 	this.pressedKeys = [];
 	this.tanks = [];
 	this.missiles = [];
 	this.deadObjects = [];
 	this.tileMapTanks = [];
+	this.tileMapWalls = [];
+
 	this.perfomanceCounterMax = 0;
 	this.perfomanceCounterMin = 999999;
 	
@@ -64,6 +66,39 @@ function MainLoop() {
 		new DebuggingMessage().pressedBtn(self.pressedKeys);
 	};
 
+	/*	
+	TODO:
+	Important!
+	What should be done!!! This callback should be removed and collisions processor shoud call hit() function of the object
+	that was hit. If this object explodes, then it doesn't create a new object, but changes it's draw() behaviour. And only after all
+	proper things, like animation, would be finished, the object will put himself to Dead state.*/
+	this.updateCallback = function(updateResult) {
+		if (updateResult !== undefined) {
+			if(typeof updateResult.hit !== 'function') return;
+			var newObject = updateResult.hit();
+			if (newObject !== undefined) {
+				newObject.id = self.gameObjects.length;
+				self.gameObjects.push(newObject);
+			}
+			
+		};
+	}
+
+	this.createWall = function(pos) {
+		var wall = new Wall();		
+		wall.initialize(pos, [50, 50], '', 'Green');		
+
+		/*var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
+		var tileMapWallsWidth = (canvasWH[0] / wall.getSize()[0]) |0;
+		var tileMapWallsHeight = (canvasWH[1] / wall.getSize()[1]) |0;*/
+
+		var posX = (wall.getPosition()[0] / 50) |0;
+		var posY = (wall.getPosition()[1] / 50) |0;
+
+		if (typeof self.tileMapWalls[posX] === 'undefined') self.tileMapWalls[posX] = [];
+		self.tileMapWalls[posX][posY] = wall;
+	}
+
 	this.createTank = function(id, commandsMap, coords, color) {
 		var newTank = new Tank(id);
 		newTank.setCommandsMap(commandsMap);
@@ -94,7 +129,23 @@ function MainLoop() {
 
 		var newObjects = [];
 		var canvas = document.getElementById('canvas');
-		var i = j = k = l = m = n = 0; /*Initializing For loops counters.*/		
+		var i = j = k = l = m = n = 0; /*Initializing For loops counters.*/	
+
+		var deadWalls = [];
+		for(var wallsCounterX = 0; wallsCounterX < self.tileMapWalls.length; wallsCounterX++) {
+			if(typeof self.tileMapWalls[wallsCounterX] === 'undefined') continue;
+			for(var wallsCounterY = 0; wallsCounterY < self.tileMapWalls[wallsCounterX].length; wallsCounterY++) {
+				if(typeof self.tileMapWalls[wallsCounterX][wallsCounterY] !== 'undefined') 					
+					if (self.tileMapWalls[wallsCounterX][wallsCounterY].dead == false)
+						self.tileMapWalls[wallsCounterX][wallsCounterY].draw(canvas);
+					else deadWalls.push([wallsCounterX, wallsCounterY]);					
+			};
+		};
+
+		for (var deadWallsCounter = 0; deadWallsCounter < deadWalls.length; deadWallsCounter++) {
+			self.tileMapWalls[deadWalls[deadWallsCounter][0]][deadWalls[deadWallsCounter][1]].remove(canvas);
+			self.tileMapWalls[deadWalls[deadWallsCounter][0]][deadWalls[deadWallsCounter][1]] = undefined;
+		};
 		
 		for (var j = 0; j < self.gameObjects.length; j++) {
 			if(typeof self.gameObjects[j] === 'undefined') 
@@ -109,10 +160,12 @@ function MainLoop() {
 
 			if(typeof self.gameObjects[j].update !== 'undefined') {
 				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {					
-					self.gameObjects[j].update(PossibleCollisions, [self.gameObjects[j], self.tileMapTanks, canvas]);
+					self.gameObjects[j].update(PossibleCollisions
+						, [self.gameObjects[j], self.tileMapTanks, canvas, self.tileMapWalls]
+						, self.updateCallback);
 				}
 				else {
-					self.gameObjects[j].update();
+					self.gameObjects[j].update(); //TODO: I don't know what is it here for, so check it, pls.
 				}
 			}
 
@@ -120,7 +173,7 @@ function MainLoop() {
 				continue;	
 
 			
-			self.gameObjects[j].draw(canvas);
+			self.gameObjects[j].draw(canvas);			
 
 		};
 		j = 0; //clear the counter
@@ -167,7 +220,6 @@ function MainLoop() {
 			indexOfUndefined = self.gameObjects.indexOf(undefined);
 		};
 
-		/*---Check for collisions---*/
 		/*What I do below is saving tanks objects to tile map in accordance with tanks' positions.
 		There is an assumption that canvas.width / tank.width is an integer. */		
 		var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
@@ -185,19 +237,22 @@ function MainLoop() {
 			self.tileMapTanks[tankTileCoord[0]][tankTileCoord[1]].push(tank);
 		};				
 
-		//for (var t = 0; t < self.tanks.length; t++) PossibleCollisions(self.tanks[t], self.tileMapTanks, canvas);
-		/*---Check for collisions end---*/		
+		//for (var t = 0; t < self.tanks.length; t++) PossibleCollisions(self.tanks[t], self.tileMapTanks, canvas);		
 
+		/*Checking perfomance. Address perfomanceCounter variables from console if needed.*/
 		var endTime = (new Date()).valueOf();
 		var delta = endTime - startTime;
 		if(self.perfomanceCounterMin > delta) self.perfomanceCounterMin = delta;
 		if(self.perfomanceCounterMax < delta) self.perfomanceCounterMax = delta;
+		(new DebuggingMessage()).perfomanceMsg(self.perfomanceCounterMin, self.perfomanceCounterMax);
+
 		setTimeout(self.draw, 1000 / self.fps);
 	};
 	
 	this.run = function() {		
 		self.createFirstTank();
 		self.createSecondTank();	
+		self.createWall([300, 300]);
 
 		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
 		/*for(var i = 2; i < 1000; i++)	{
@@ -227,7 +282,11 @@ function DebuggingMessage() {
 
 	this.textMsg = function(textMsg) {
 		document.getElementById('message').innerHTML = textMsg;	
-	}
+	};
+
+	this.perfomanceMsg = function(min, max) {
+		document.getElementById('perfomance').innerHTML = 'Min: ' + min + '</br>Max: ' + max;	
+	};
 }
 
 var Loop = new MainLoop();

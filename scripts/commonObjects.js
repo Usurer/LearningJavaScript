@@ -65,7 +65,14 @@ function Sprite() {
 		if(el != null && typeof el !== 'undefined') {
 			el.style.top = self.y - self.height/2;
 			el.style.left = self.x - self.width/2;
+			//temprorary
+			el.style.background = self.background;
 		};
+	};
+
+	this.remove = function(canvas) {
+		var el = document.getElementById(self.id);
+		canvas.removeChild(el);
 	};
 }
 
@@ -88,7 +95,7 @@ function MovingObject() {
 		self.moves = false;
 	};
 	
-	this.move = function(collisionChecker, args) {
+	this.move = function(collisionChecker, args, callback) {
 		if (!self.moves)
 			return;
 		var posChangeX = self.speed[0] * (self.direction == 'e' ? 1 : self.direction == 'w' ? -1 : 0);
@@ -96,9 +103,15 @@ function MovingObject() {
 		self.x = self.x + posChangeX;
 		self.y = self.y + posChangeY;
 
-		if (typeof args !== 'undefined' && args.length > 2 && collisionChecker(args[0], args[1], args[2])) {
+		var collisionCheckResult = undefined;
+		if (typeof args !== 'undefined' && args.length > 2 && (collisionCheckResult = collisionChecker(args[0], args[1], args[2], args[3])) !== undefined) {
 			self.x = self.x - posChangeX;
 			self.y = self.y - posChangeY;
+			if (self instanceof Missile) {
+				self.dead = true; //Missile explodes on collision.
+				collisionCheckResult.background = 'Yellow';
+				callback(collisionCheckResult);
+			};
 		};
 	};		
 
@@ -114,11 +127,11 @@ function MovingObject() {
 		}		
 	};	
 
-	this.update = function(collisionChecker, args) {		
+	this.update = function(collisionChecker, args, callback) {		
 		if(this.age > this.maxAge) {
 			this.dead = true;
 		}
-		self.move(collisionChecker, args);		
+		self.move(collisionChecker, args, callback);		
 		if(this.maxAge > 0)
 			this.age++;
 	};	
@@ -166,13 +179,14 @@ function Tank(){
 
 		var missile = new Missile();
 		/*sets missile position in accordance with tank direction*/
-		var pos = self.direction == 'n' ? [self.getPosition()[0], self.getPosition()[1] - self.getSize()[1] / 2 - 5] :
-			(self.direction == 's' ? [self.getPosition()[0], self.getPosition()[1] + self.getSize()[1] / 2 + 5] :
-				(self.direction == 'e' ? [self.getPosition()[0] + self.getSize()[0] / 2 + 5, self.getPosition()[1]] :
-					[self.getPosition()[0] - self.getSize()[0] / 2 - 5, self.getPosition()[1]]
+		var pos = self.direction == 'n' ? [self.getPosition()[0], self.getPosition()[1] - self.getSize()[1] / 2 - 5 - 1] :
+			(self.direction == 's' ? [self.getPosition()[0], self.getPosition()[1] + self.getSize()[1] / 2 + 5 + 1] :
+				(self.direction == 'e' ? [self.getPosition()[0] + self.getSize()[0] / 2 + 5 + 1, self.getPosition()[1]] :
+					[self.getPosition()[0] - self.getSize()[0] / 2 - 5 - 1, self.getPosition()[1]]
 				)
 			);
 		missile.initialize(pos, [10, 10], '', 'White');
+		missile.direction = self.direction;
 		self.missiles.push(missile);
 		return missile;
 	};
@@ -182,8 +196,18 @@ function Tank(){
 function Missile() {
 	Missile.superclass.constructor.call(this);
 	var self = this;	
-	self.maxAge = 100;	
+	self.maxAge = 20;	
 	self.moves = true;
+	self.speed = [5, 5];
+};
+
+function Wall() {
+	Wall.superclass.constructor.call(this);
+	var self = this;
+
+	this.hit = function() {
+		self.dead = true;		
+	};
 };
 
 function extend(Child, Parent) {
@@ -192,10 +216,11 @@ function extend(Child, Parent) {
     Child.prototype = new F();
     Child.prototype.constructor = Child;
     Child.superclass = Parent.prototype;
-}
+};
 
 extend(Sprite, CommonObject);
 extend(MovingObject, Sprite);
 extend(Tank, MovingObject);
 extend(Missile, MovingObject);
+extend(Wall, Sprite);
 //http://jsfiddle.net/R2YTj/
