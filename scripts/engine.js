@@ -9,6 +9,8 @@ function MainLoop() {
 	this.missiles = [];
 	this.deadObjects = [];
 	this.tileMapTanks = [];
+	this.perfomanceCounterMax = 0;
+	this.perfomanceCounterMin = 999999;
 	
 	var self = this;
 	
@@ -80,9 +82,9 @@ function MainLoop() {
 		self.createTank(1, map, [200, 200], 'Blue');				
 	};	
 
-	this.draw = function() {		
-		//console.log('tick');
-
+	this.draw = function() {				
+		//console.log('tick');		
+		var startTime = (new Date()).valueOf();
 		
 		/*Here are the bad news - we cannot fire missile from the Tank class in current object model realization, because only game engine has access to gameObjects, globals etc. I see three ways to solve the problem:
 		1. This is what I've started to do first - if 'fire' is pressed, then game engine will emulate the fire.
@@ -105,13 +107,21 @@ function MainLoop() {
 				newObjects.push.apply(newObjects, self.gameObjects[j].receiveCommands(self.pressedKeys));
 			};
 
-			if(typeof self.gameObjects[j].update !== 'undefined')
-				self.gameObjects[j].update();
+			if(typeof self.gameObjects[j].update !== 'undefined') {
+				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {					
+					self.gameObjects[j].update(PossibleCollisions, [self.gameObjects[j], self.tileMapTanks, canvas]);
+				}
+				else {
+					self.gameObjects[j].update();
+				}
+			}
 
 			if(typeof self.gameObjects[j].draw === 'undefined')
 				continue;	
 
+			
 			self.gameObjects[j].draw(canvas);
+
 		};
 		j = 0; //clear the counter
 
@@ -175,15 +185,24 @@ function MainLoop() {
 			self.tileMapTanks[tankTileCoord[0]][tankTileCoord[1]].push(tank);
 		};				
 
-		for (var t = 0; t < self.tanks.length; t++) PossibleCollisions(self.tanks[t], self.tileMapTanks, canvas);
+		//for (var t = 0; t < self.tanks.length; t++) PossibleCollisions(self.tanks[t], self.tileMapTanks, canvas);
 		/*---Check for collisions end---*/		
 
+		var endTime = (new Date()).valueOf();
+		var delta = endTime - startTime;
+		if(self.perfomanceCounterMin > delta) self.perfomanceCounterMin = delta;
+		if(self.perfomanceCounterMax < delta) self.perfomanceCounterMax = delta;
 		setTimeout(self.draw, 1000 / self.fps);
 	};
 	
 	this.run = function() {		
 		self.createFirstTank();
-		self.createSecondTank();		
+		self.createSecondTank();	
+
+		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
+		/*for(var i = 2; i < 1000; i++)	{
+			self.createTank(i, {}, [250, 250], 'Yellow');	
+		}*/
 		
 		document.onkeydown = keyDownHandler;
 		document.onkeyup = keyUpHandler;
@@ -211,4 +230,5 @@ function DebuggingMessage() {
 	}
 }
 
-new MainLoop().run();
+var Loop = new MainLoop();
+Loop.run();

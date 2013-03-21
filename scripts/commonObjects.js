@@ -1,8 +1,9 @@
 function CommonObject() {
+	var self = this;
 	this.id = undefined;
 	this.age = 0;
 	this.maxAge = 0;
-	this.dead = false;
+	this.dead = false;	
 }
 
 function Sprite() {
@@ -15,7 +16,7 @@ function Sprite() {
 	this.sprite = '';
 	this.background = "Transparent";			
 	
-	var self = this;
+	var self = this;	
 	
 	this.getPosition = function() {
 		return [self.x, self.y];
@@ -87,13 +88,18 @@ function MovingObject() {
 		self.moves = false;
 	};
 	
-	this.move = function() {
+	this.move = function(collisionChecker, args) {
 		if (!self.moves)
 			return;
 		var posChangeX = self.speed[0] * (self.direction == 'e' ? 1 : self.direction == 'w' ? -1 : 0);
 		var posChangeY = self.speed[1] * (self.direction == 's' ? 1 : self.direction == 'n' ? -1 : 0);
 		self.x = self.x + posChangeX;
-		self.y = self.y + posChangeY;		
+		self.y = self.y + posChangeY;
+
+		if (typeof args !== 'undefined' && args.length > 2 && collisionChecker(args[0], args[1], args[2])) {
+			self.x = self.x - posChangeX;
+			self.y = self.y - posChangeY;
+		};
 	};		
 
 	this.setDirection = function(direction) {
@@ -108,11 +114,11 @@ function MovingObject() {
 		}		
 	};	
 
-	this.update = function() {		
+	this.update = function(collisionChecker, args) {		
 		if(this.age > this.maxAge) {
 			this.dead = true;
 		}
-		self.move();		
+		self.move(collisionChecker, args);		
 		if(this.maxAge > 0)
 			this.age++;
 	};	
@@ -147,8 +153,27 @@ function Tank(){
 	};
 
 	this.fire = function() {
+		/*We can't have more then one missile.*/		
+		if(self.missiles.length > 0) {
+			/*Let's check that missiles aren't dead already*/
+			for (var i = 0; i < self.missiles.length; i++) {
+				if (self.missiles[i].dead == true)
+					self.missiles.splice(i, 1);
+			};
+			/*So if them aren't, then don't fire*/
+			if(self.missiles.length > 0) return undefined;
+		}
+
 		var missile = new Missile();
-		missile.initialize(self.getPosition(), [10, 10], '', 'White');
+		/*sets missile position in accordance with tank direction*/
+		var pos = self.direction == 'n' ? [self.getPosition()[0], self.getPosition()[1] - self.getSize()[1] / 2 - 5] :
+			(self.direction == 's' ? [self.getPosition()[0], self.getPosition()[1] + self.getSize()[1] / 2 + 5] :
+				(self.direction == 'e' ? [self.getPosition()[0] + self.getSize()[0] / 2 + 5, self.getPosition()[1]] :
+					[self.getPosition()[0] - self.getSize()[0] / 2 - 5, self.getPosition()[1]]
+				)
+			);
+		missile.initialize(pos, [10, 10], '', 'White');
+		self.missiles.push(missile);
 		return missile;
 	};
 
@@ -156,8 +181,9 @@ function Tank(){
 
 function Missile() {
 	Missile.superclass.constructor.call(this);
-	var self = this;
+	var self = this;	
 	self.maxAge = 100;	
+	self.moves = true;
 };
 
 function extend(Child, Parent) {
