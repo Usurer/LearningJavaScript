@@ -210,6 +210,43 @@ function Wall() {
 	};
 };
 
+function TankAI() {
+	TankAI.superclass.constructor.call(this, arguments[0]);
+
+	this.movementCommandsCounter = 0;
+	this.speed = [2, 2];	
+	var self = this;	
+
+	this.getRandomCommandResult = function() {
+		var r = Math.floor(Math.random() * 9) + 1;
+		switch(r) {
+			case 1: return self['setDirection']('N');
+			case 2: return self['setDirection']('S');
+			case 3: return self['setDirection']('W');
+			case 4: return self['setDirection']('E');
+			default: return self['fireAi']();
+		};
+	};	
+
+	this.receiveCommands = function() {		
+		var commandsResult = [];
+		if(self.movementCommandsCounter > 50) {
+			self.resetCommands();			
+			var r = self.getRandomCommandResult();
+			commandsResult.push(r);	
+			self.movementCommandsCounter = 0;
+		}
+		
+		self.movementCommandsCounter++;	
+		return commandsResult;		
+	};
+
+	this.fireAi = function() {
+		self.movementCommandsCounter = 0;
+		return self.fire();
+	}
+};
+
 function extend(Child, Parent) {
     var F = function() { };
     F.prototype = Parent.prototype;
@@ -221,6 +258,7 @@ function extend(Child, Parent) {
 extend(Sprite, CommonObject);
 extend(MovingObject, Sprite);
 extend(Tank, MovingObject);
+extend(TankAI, Tank);
 extend(Missile, MovingObject);
 extend(Wall, Sprite);
 //http://jsfiddle.net/R2YTj/

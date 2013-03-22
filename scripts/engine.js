@@ -117,6 +117,14 @@ function MainLoop() {
 		self.createTank(1, map, [200, 200], 'Blue');				
 	};	
 
+	this.createAiTank = function(pos) {
+		if (pos === undefined) pos = [200, 50];
+		var newTank = new TankAI(self.gameObjects.length);
+		newTank.initialize(pos, [50, 50], '', 'White');
+		self.gameObjects[newTank.id] = newTank;
+		self.tanks[newTank.id] = newTank;	
+	};
+
 	this.draw = function() {				
 		//console.log('tick');		
 		var startTime = (new Date()).valueOf();
@@ -159,7 +167,7 @@ function MainLoop() {
 			};
 
 			if(typeof self.gameObjects[j].update !== 'undefined') {
-				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {					
+				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {										
 					self.gameObjects[j].update(PossibleCollisions
 						, [self.gameObjects[j], self.tileMapTanks, canvas, self.tileMapWalls]
 						, self.updateCallback);
@@ -252,6 +260,12 @@ function MainLoop() {
 	this.run = function() {		
 		self.createFirstTank();
 		self.createSecondTank();	
+		self.createAiTank([225, 50]);
+		self.createAiTank([250, 110]);
+		self.createAiTank([100, 300]);
+		self.createAiTank([190, 275]);
+		self.createAiTank([375, 375]);
+		self.createAiTank([450, 450]);
 		self.createWall([300, 300]);
 
 		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
@@ -291,3 +305,4 @@ function DebuggingMessage() {
 
 var Loop = new MainLoop();
 Loop.run();
+var tankSize = 50;
