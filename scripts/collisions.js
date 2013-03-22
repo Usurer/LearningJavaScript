@@ -8,7 +8,7 @@ function PossibleCollisions(objectToCheck, tilesMapTanks, canvas, tilesMapWalls)
 	/*Dirty fix for the case when tilesMapTanks is empty (happens on the very first loop with AI tank that starts it's movement 
 		in that loop). As a solution - make a pause between first movement and collision check start. I mean don't check collisions 
 		at the fist loop.*/
-	if(objectToCheck === undefined || tilesMapTanks === undefined || tilesMapTanks.length < 1) return undefined;
+	if(objectToCheck === undefined || tilesMapTanks === undefined || tilesMapTanks.length < 1) return undefined;	
 
 	var simplifiedCollisions = false;
 	if (typeof simplifiedCollisions !== 'undefined' && simplifiedCollisions) {
@@ -96,10 +96,11 @@ function PossibleCollisions(objectToCheck, tilesMapTanks, canvas, tilesMapWalls)
 
 function GetTankTile(objectToCheck, canvas) {
 	var canvasSize = [canvas.offsetWidth, canvas.offsetHeight];		
-	return [(objectToCheck.getPosition()[0] / /*objectToCheck.getSize()[0]*/50) |0, (objectToCheck.getPosition()[1] / /*objectToCheck.getSize()[1]*/50) |0];
+	return [(objectToCheck.getPosition()[0] / /*objectToCheck.getSize()[0]*/tankSize[0]) |0, (objectToCheck.getPosition()[1] / /*objectToCheck.getSize()[1]*/tankSize[1]) |0];
 };
 
 function CheckCollision(t1, t2) {
+	//This is a dirty hack for a bug that appears during simpleCollisions algorithm processing.
 	if (typeof t2.getPosition !== 'function') {
 		//console.info(t2);
 		//console.info(t2.getPosition);

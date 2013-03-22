@@ -1,3 +1,4 @@
+window.tankSize = [20,20];
 function MainLoop() {
 	this.fps = 50; //draw loops per second
 	this.ups = 20; //update loops per second
@@ -10,6 +11,7 @@ function MainLoop() {
 	this.deadObjects = [];
 	this.tileMapTanks = [];
 	this.tileMapWalls = [];
+	this.currentId = 0;
 
 	this.perfomanceCounterMax = 0;
 	this.perfomanceCounterMin = 999999;
@@ -85,42 +87,43 @@ function MainLoop() {
 	}
 
 	this.createWall = function(pos) {
-		var wall = new Wall();		
-		wall.initialize(pos, [50, 50], '', 'Green');		
+		var wall = new Wall();				
+		wall.initialize(pos, tankSize, '', 'Green');		
 
 		/*var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
 		var tileMapWallsWidth = (canvasWH[0] / wall.getSize()[0]) |0;
 		var tileMapWallsHeight = (canvasWH[1] / wall.getSize()[1]) |0;*/
 
-		var posX = (wall.getPosition()[0] / 50) |0;
-		var posY = (wall.getPosition()[1] / 50) |0;
+		var posX = (wall.getPosition()[0] / tankSize[0]) |0;
+		var posY = (wall.getPosition()[1] / tankSize[1]) |0;
 
 		if (typeof self.tileMapWalls[posX] === 'undefined') self.tileMapWalls[posX] = [];
 		self.tileMapWalls[posX][posY] = wall;
-	}
+		wall.id = 'w_' + posX + '_' + posY;
+	};
 
 	this.createTank = function(id, commandsMap, coords, color) {
 		var newTank = new Tank(id);
 		newTank.setCommandsMap(commandsMap);
-		newTank.initialize(coords, [50, 50], '', color);
+		newTank.initialize(coords, tankSize, '', color);
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;
 	};
 
 	this.createFirstTank = function() {		
 		var map = {'S': 'setDirection', 'N': 'setDirection', 'E': 'setDirection', 'W': 'setDirection', 'SPACE': 'fire'};
-		self.createTank(0, map, [50, 50], 'Red');		
+		self.createTank(0, map, [300, 700], 'Red');		
 	};
 
 	this.createSecondTank = function() {		
 		var map = {'s': 'setDirection', 'n': 'setDirection', 'e': 'setDirection', 'w': 'setDirection', 'RCTRL': 'fire'};
-		self.createTank(1, map, [200, 200], 'Blue');				
+		self.createTank(1, map, [500, 700], 'Blue');				
 	};	
 
 	this.createAiTank = function(pos) {
 		if (pos === undefined) pos = [200, 50];
 		var newTank = new TankAI(self.gameObjects.length);
-		newTank.initialize(pos, [50, 50], '', 'White');
+		newTank.initialize(pos, tankSize, '', 'White');
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;	
 	};
@@ -136,7 +139,7 @@ function MainLoop() {
 		*/
 
 		var newObjects = [];
-		var canvas = document.getElementById('canvas');
+		var canvas = document.getElementById('canvas');		
 		var i = j = k = l = m = n = 0; /*Initializing For loops counters.*/	
 
 		var deadWalls = [];
@@ -163,14 +166,22 @@ function MainLoop() {
 			if(typeof self.gameObjects[j].receiveCommands !== 'undefined') {
 				/*A trick to join two arrays without a new array creation (as concat does). It's also faster than concat. 
 				See also: http://jsperf.com/concat-vs-push-apply/11 */			
-				newObjects.push.apply(newObjects, self.gameObjects[j].receiveCommands(self.pressedKeys));
+				if(self.gameObjects[j] instanceof TankAI) {
+					newObjects.push.apply(newObjects, self.gameObjects[j].receiveCommands(self.tanks));
+				}
+				else {
+					newObjects.push.apply(newObjects, self.gameObjects[j].receiveCommands(self.pressedKeys));
+				}
 			};
 
 			if(typeof self.gameObjects[j].update !== 'undefined') {
 				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {										
-					self.gameObjects[j].update(PossibleCollisions
+					var isStuck = !(self.gameObjects[j].update(PossibleCollisions
 						, [self.gameObjects[j], self.tileMapTanks, canvas, self.tileMapWalls]
-						, self.updateCallback);
+						, self.updateCallback));
+					if(self.gameObjects[j] instanceof TankAI && isStuck === true) {
+						self.gameObjects[j].changeDirection();
+					};
 				}
 				else {
 					self.gameObjects[j].update(); //TODO: I don't know what is it here for, so check it, pls.
@@ -192,29 +203,46 @@ function MainLoop() {
 				if (typeof newObjects[i] === 'undefined')
 					continue;
 				
-				if (typeof newObjects[i].id === 'undefined') 
-					newObjects[i].id = self.gameObjects.length + i;				
+				if (typeof newObjects[i].id === 'undefined') {
+					//newObjects[i].id = self.gameObjects.length + i > currentId ? self.gameObjects.length + i : ++currentId;				
+					newObjects[i].id = ++self.currentId;				
+				};
 
 				self.gameObjects.push(newObjects[i]);
-			};
-			i = 0;
+			};			
 			/*self.gameObjects.push.apply(self.gameObjects, newObjects); - it will also add 'undefined' values to gameObjects, so don't use it;*/
 		};
 
+		i = 0;
 		/*Now I want remove dead objects from the gameObjects list. Dead object is the one that should be removed from the game, like finished tank burst animation etc.*/
 		for (var i = 0; i < self.gameObjects.length; i++) {
 			if(typeof self.gameObjects[i] === 'undefined')
 				continue;
 			if(self.gameObjects[i].dead === true)
 			{
-				self.deadObjects.push(self.gameObjects[i]);
+				self.deadObjects.push(self.gameObjects[i]);				
+
+				if(self.gameObjects[i] instanceof Tank) {
+					console.log('Tank with ID ' + self.gameObjects[i].id + ' should be removed');
+					if (self.tanks[self.gameObjects[i].id] !== undefined) {						
+						self.tanks[self.gameObjects[i].id] = undefined;
+						console.log('Tank with ID ' + self.gameObjects[i].id + ' had been set to undefined');
+					};
+				};
+
 				self.gameObjects[i] = undefined;
 			}
+			
 		};
 		i = 0;
 		
 		for (var i = 0; i < self.deadObjects.length; i++) {
 			var el = document.getElementById(self.deadObjects[i].id);
+			if (el === null) {
+				console.info(self.deadObjects[i]); 
+				console.error('el is null'); 
+				continue;
+			};
 			if (el.parentElement == canvas)
 				canvas.removeChild(el);
 		};
@@ -230,6 +258,7 @@ function MainLoop() {
 
 		/*What I do below is saving tanks objects to tile map in accordance with tanks' positions.
 		There is an assumption that canvas.width / tank.width is an integer. */		
+		self.tileMapTanks = [];
 		var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
 		var tileMapTanksWidth = (canvasWH[0] / self.tanks[0].getSize()[0]) |0;
 		var tileMapTanksHeight = (canvasWH[1] / self.tanks[0].getSize()[1]) |0;
@@ -240,6 +269,7 @@ function MainLoop() {
 		};
 		i = 0;
 		for (var tankIndex = 0; tankIndex < self.tanks.length; tankIndex++) {
+			if (self.tanks[tankIndex] === undefined) continue;
 			var tank = self.tanks[tankIndex];
 			var tankTileCoord = [(tank.getPosition()[0] / tank.getSize()[0]) |0, (tank.getPosition()[1] / tank.getSize()[1]) |0];
 			self.tileMapTanks[tankTileCoord[0]][tankTileCoord[1]].push(tank);
@@ -252,21 +282,27 @@ function MainLoop() {
 		var delta = endTime - startTime;
 		if(self.perfomanceCounterMin > delta) self.perfomanceCounterMin = delta;
 		if(self.perfomanceCounterMax < delta) self.perfomanceCounterMax = delta;
-		(new DebuggingMessage()).perfomanceMsg(self.perfomanceCounterMin, self.perfomanceCounterMax);
+		(new DebuggingMessage()).perfomanceMsg(self.perfomanceCounterMin, self.perfomanceCounterMax, delta);
 
-		setTimeout(self.draw, 1000 / self.fps);
+		var timeout = 1000 / self.fps;
+		timeout = timeout > delta ? timeout - delta : timeout;
+
+		setTimeout(self.draw, timeout);
 	};
 	
 	this.run = function() {		
 		self.createFirstTank();
 		self.createSecondTank();	
-		self.createAiTank([225, 50]);
-		self.createAiTank([250, 110]);
-		self.createAiTank([100, 300]);
-		self.createAiTank([190, 275]);
-		self.createAiTank([375, 375]);
-		self.createAiTank([450, 450]);
-		self.createWall([300, 300]);
+		self.createAiTank([100, 50]);
+		self.createAiTank([250, 50]);
+		self.createAiTank([300, 50]);
+		self.createAiTank([450, 50]);
+		self.createAiTank([600, 50]);
+		self.createAiTank([750, 50]);
+		//self.createWall([300, 300]);
+		self.createMap();
+
+		self.currentId = self.gameObjects.length;
 
 		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
 		/*for(var i = 2; i < 1000; i++)	{
@@ -283,6 +319,16 @@ function MainLoop() {
 		var drawer = setTimeout(self.draw, 1000 / self.fps);
 		
 	};
+
+	this.createMap = function() {
+		self.createWall([500, 500]);
+		self.createWall([520, 500]);
+		self.createWall([540, 500]);
+		self.createWall([560, 520]);
+		self.createWall([520, 520]);
+		self.createWall([540, 520]);
+		self.createWall([560, 520]);
+	};
 }
 
 function DebuggingMessage() {
@@ -298,11 +344,10 @@ function DebuggingMessage() {
 		document.getElementById('message').innerHTML = textMsg;	
 	};
 
-	this.perfomanceMsg = function(min, max) {
-		document.getElementById('perfomance').innerHTML = 'Min: ' + min + '</br>Max: ' + max;	
+	this.perfomanceMsg = function(min, max, last) {
+		document.getElementById('perfomance').innerHTML = 'Min: ' + min + '</br>Max: ' + max + '</br>Last:' + last;	
 	};
 }
 
 var Loop = new MainLoop();
 Loop.run();
-var tankSize = 50;
