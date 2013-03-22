@@ -294,8 +294,8 @@ function TankAI() {
 				commandsResult.push(r);			
 				self.movementCommandsCounter = 0;
 			} 
-			else {
-				//self.background = 'Red';
+			else if (typeof targets[0] !== 'undefined') {
+				//self.background = 'Red';				
 				self.resetCommands();											
 				self.moveTo(targets[0].getPosition());
 				if(Math.random() > 0.6) commandsResult.push(self.fire());	

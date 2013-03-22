@@ -260,8 +260,8 @@ function MainLoop() {
 		There is an assumption that canvas.width / tank.width is an integer. */		
 		self.tileMapTanks = [];
 		var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
-		var tileMapTanksWidth = (canvasWH[0] / self.tanks[0].getSize()[0]) |0;
-		var tileMapTanksHeight = (canvasWH[1] / self.tanks[0].getSize()[1]) |0;
+		var tileMapTanksWidth = (canvasWH[0] / tankSize[0]) |0;
+		var tileMapTanksHeight = (canvasWH[1] / tankSize[1]) |0;
 		for(var i = 0; i < tileMapTanksWidth; i++) {
 			var column = new Array(tileMapTanksHeight);
 			for (var c = 0; c < column.length; c++) column[c] = [];
@@ -271,7 +271,7 @@ function MainLoop() {
 		for (var tankIndex = 0; tankIndex < self.tanks.length; tankIndex++) {
 			if (self.tanks[tankIndex] === undefined) continue;
 			var tank = self.tanks[tankIndex];
-			var tankTileCoord = [(tank.getPosition()[0] / tank.getSize()[0]) |0, (tank.getPosition()[1] / tank.getSize()[1]) |0];
+			var tankTileCoord = [(tank.getPosition()[0] / tankSize[0]) |0, (tank.getPosition()[1] / tankSize[1]) |0];
 			self.tileMapTanks[tankTileCoord[0]][tankTileCoord[1]].push(tank);
 		};				
 
@@ -328,6 +328,16 @@ function MainLoop() {
 		self.createWall([520, 520]);
 		self.createWall([540, 520]);
 		self.createWall([560, 520]);
+		self.createWall([300, 300]);
+		self.createWall([320, 300]);
+		self.createWall([340, 300]);
+		self.createWall([360, 300]);
+		self.createWall([380, 300]);
+		self.createWall([380, 320]);
+		self.createWall([380, 340]);
+		self.createWall([380, 280]);
+		self.createWall([380, 260]);
+		self.createWall([380, 240]);
 	};
 }
 
