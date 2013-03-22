@@ -62,15 +62,28 @@ function Sprite() {
 			objDiv.style.position = 'fixed';
 			objDiv.style.top = currentObject.y - currentObject.height/2;
 			objDiv.style.left = currentObject.x - currentObject.width/2;
-			objDiv.style.background = currentObject.background;
+			if(typeof self.sprite !== 'undefined' && self.sprite.length > 0) {
+				objDiv.style.backgroundImage = "url(img/" + self.sprite + ')';
+			}
+			else {
+				objDiv.style.background = currentObject.background;
+			};
 			canvas.appendChild(objDiv);				
 		};
 		el = document.getElementById(self.id);
 		if(el != null && typeof el !== 'undefined') {
 			el.style.top = self.y - self.height/2;
 			el.style.left = self.x - self.width/2;
+
 			//temprorary
-			el.style.background = self.background;
+			if(typeof self.sprite !== 'undefined' && self.sprite.length > 1) {
+				el.style.backgroundImage = "url(img/" + self.sprite + ')';
+			}
+			else {
+				el.style.background = self.background;
+			}
+			//temprorary
+			//el.style.background = self.background;
 		};
 	};
 
@@ -84,7 +97,7 @@ function MovingObject() {
 	MovingObject.superclass.constructor.call(this) 
 	this.speed = [1, 1];
 	this.moves = false;	
-	this.direction = 'n'; //n,s,w,e	
+	this.direction = 'n'; //n,s,w,e		
 	
 	var self = this;
 
@@ -106,6 +119,11 @@ function MovingObject() {
 		var posChangeY = self.speed[1] * (self.direction == 's' ? 1 : self.direction == 'n' ? -1 : 0);
 		self.x = self.x + posChangeX;
 		self.y = self.y + posChangeY;
+		
+		if (self.sprite.length > 0) {
+			var postfixStart = self.sprite.length - 5; //'*.png'
+			self.sprite = self.sprite.substr(0, postfixStart) + self.direction + '.png';
+		};
 
 		var collisionCheckResult = undefined;
 		if (typeof args !== 'undefined' && args.length > 2 && (collisionCheckResult = collisionChecker(args[0], args[1], args[2], args[3])) !== undefined) {

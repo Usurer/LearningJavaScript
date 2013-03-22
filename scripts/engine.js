@@ -105,7 +105,7 @@ function MainLoop() {
 	this.createTank = function(id, commandsMap, coords, color) {
 		var newTank = new Tank(id);
 		newTank.setCommandsMap(commandsMap);
-		newTank.initialize(coords, tankSize, '', color);
+		newTank.initialize(coords, tankSize, 'tank_20x20_n.png', color);
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;
 	};
