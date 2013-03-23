@@ -11,7 +11,8 @@ function MainLoop() {
 	this.deadObjects = [];
 	this.tileMapTanks = [];
 	this.tileMapWalls = [];
-	this.currentId = 0;
+	this.currentId = 0; //the biggest actual object Id
+	this.paused = false; // game is paused if set to true
 
 	this.perfomanceCounterMax = 0;
 	this.perfomanceCounterMin = 999999;
@@ -30,6 +31,7 @@ function MainLoop() {
 			case 68: return 'E'; //D
 			case 32: return 'SPACE'; //space
 			case 17: return 'RCTRL'; //rctrl
+			case 80: return 'pause'; //P
 			default: return null;
 		};
 	};
@@ -50,6 +52,7 @@ function MainLoop() {
 					return;
 				}				
 			}
+			if (pressedKey === 'pause') self.paused = !self.paused; //this is a special case - game is set to pause
 			self.pressedKeys.push(pressedKey);
 		};
 		
@@ -123,14 +126,22 @@ function MainLoop() {
 	this.createAiTank = function(pos) {
 		if (pos === undefined) pos = [200, 50];
 		var newTank = new TankAI(self.gameObjects.length);
-		newTank.initialize(pos, tankSize, '', 'White');
+		newTank.initialize(pos, tankSize, 'tank_ai_20x20_n.png', 'White');
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;	
-	};
+	};	
 
 	this.draw = function() {				
 		//console.log('tick');		
 		var startTime = (new Date()).valueOf();
+		
+		/*We want to write status info before the main draw in case it will be passed by for a paused game*/
+		(new DebuggingMessage()).statusMsg(self.paused); 
+		/* if the game's on pause we just won't update objects*/
+		if (self.paused) {
+			setTimeout(self.draw, timeout); 
+			return;
+		};
 		
 		/*Here are the bad news - we cannot fire missile from the Tank class in current object model realization, because only game engine has access to gameObjects, globals etc. I see three ways to solve the problem:
 		1. This is what I've started to do first - if 'fire' is pressed, then game engine will emulate the fire.
@@ -289,10 +300,10 @@ function MainLoop() {
 
 		setTimeout(self.draw, timeout);
 	};
-	
-	this.run = function() {		
+
+	this.initGame = function() {
 		self.createFirstTank();
-		self.createSecondTank();	
+		//self.createSecondTank();	
 		self.createAiTank([100, 50]);
 		self.createAiTank([250, 50]);
 		self.createAiTank([300, 50]);
@@ -316,9 +327,38 @@ function MainLoop() {
 
 		/*Set interval is bad because it creates a queue of calls - it's better use setTimeoute with callback. 
 		http://shamansir.github.com/JavaScript-Garden/#other.timeouts*/		
-		var drawer = setTimeout(self.draw, 1000 / self.fps);
+		//var drawer = setTimeout(self.draw, 1000 / self.fps);
+	};
+	
+	this.run = function() {		
+		self.initGame();		
+		if (!self.paused) setTimeout(self.draw, 1000 / self.fps);
+			//setTimeout(self.pauseLoop, 100);
+		//var drawer = setTimeout(self.draw, 1000 / self.fps);
 		
 	};
+
+	/*this.checkPauseSet = function() {
+		for(var pressedCounter = 0; pressedCounter < self.pressedKeys.length; pressedCounter++) {
+			if (self.pressedKeys[pressedCounter] === 'pause') {
+				self.pressedKeys.splice(pressedCounter, 1)
+				setTimeout(self.pauseLoop, 100);
+				return true;
+			};
+		};
+		return false;
+	};
+
+	this.checkPauseReleased = function() {
+		for(var i = 0; i < self.pressedKeys.length; i++) {
+			if (self.pressedKeys[i] === 'pause') {
+				self.pressedKeys.splice(i, 1);
+				setTimeout(self.draw, 1000 / self.fps);
+				return;
+			};
+		};	
+		setTimeout(self.pauseLoop, 100);
+	};*/
 
 	this.createMap = function() {
 		self.createWall([500, 500]);
@@ -356,6 +396,12 @@ function DebuggingMessage() {
 
 	this.perfomanceMsg = function(min, max, last) {
 		document.getElementById('perfomance').innerHTML = 'Min: ' + min + '</br>Max: ' + max + '</br>Last:' + last;	
+	};
+
+	this.statusMsg = function(paused) {
+		document.getElementById('gameStatus').innerHTML = 'Game is ' 
+			+ (paused ? 'paused' : 'active')
+			+ ' press "P" to change.';
 	};
 }
 

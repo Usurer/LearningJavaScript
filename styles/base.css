@@ -11,7 +11,7 @@ body {
 
 #debugContainer {
 	width: 496px;
-	height: 100px;
+	/*height: 100px;*/
 	background: White;
 	border: 2px dashed Black;
 	margin-top: 2px;
