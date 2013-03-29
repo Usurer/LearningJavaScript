@@ -1,4 +1,4 @@
-window.tankSize = [20,20];
+window.tankSize = [30,30];
 function MainLoop() {
 	this.fps = 50; //draw loops per second
 	this.ups = 20; //update loops per second
@@ -16,6 +16,9 @@ function MainLoop() {
 
 	this.perfomanceCounterMax = 0;
 	this.perfomanceCounterMin = 999999;
+
+	this.playerSpawnPoints = [];
+	this.enemySpawnPoints = [];
 	
 	var self = this;
 	
@@ -115,7 +118,8 @@ function MainLoop() {
 
 	this.createFirstTank = function() {		
 		var map = {'S': 'setDirection', 'N': 'setDirection', 'E': 'setDirection', 'W': 'setDirection', 'SPACE': 'fire'};
-		self.createTank(0, map, [300, 700], 'Red');		
+		var coord = self.playerSpawnPoints.length > 0 ? self.playerSpawnPoints[0] : [100,500];
+		self.createTank(0, map, coord, 'Red');		
 	};
 
 	this.createSecondTank = function() {		
@@ -124,7 +128,30 @@ function MainLoop() {
 	};	
 
 	this.createAiTank = function(pos) {
-		if (pos === undefined) pos = [200, 50];
+		//If no coordinates set - use spawn points
+		if (pos === undefined) {			
+			pos =undefined;
+			for (var i = 0; i < self.enemySpawnPoints.length; i++) {			
+				for (var j = 0; j < self.tanks.length; j++) {
+					if(self.tanks[j] instanceof Tank) {
+						var tooCloseX = Math.abs(self.enemySpawnPoints[i][0] - self.tanks[j].getPosition()[0]) < (2 * tankSize[0]);
+						var tooCloseY = Math.abs(self.enemySpawnPoints[i][1] - self.tanks[j].getPosition()[1]) < (2 * tankSize[1]);
+						if(tooCloseX && tooCloseY) {
+							/*If any tank is too close - search for another spawner. 
+							If pos is set already it will reset the value, because it's wrong.*/
+							pos = undefined
+							break;
+						};						
+						pos = self.enemySpawnPoints[i];					
+					};
+				};
+				/*If position is set - don't search for another spawn points*/
+				if (pos !== undefined) break;
+			};
+		}
+		
+		if (pos === undefined) 
+			return;
 		var newTank = new TankAI(self.gameObjects.length);
 		newTank.initialize(pos, tankSize, 'tank_ai_20x20_n.png', 'White');
 		self.gameObjects[newTank.id] = newTank;
@@ -302,16 +329,24 @@ function MainLoop() {
 	};
 
 	this.initGame = function() {
+		self.createMap();
+
 		self.createFirstTank();
 		//self.createSecondTank();	
-		self.createAiTank([100, 50]);
-		self.createAiTank([250, 50]);
+		console.log('AI#1');
+		self.createAiTank();
+		console.log('AI#2');
+		self.createAiTank();
+		console.log('AI#3');
+		self.createAiTank();
+		console.log('AI#4');
+		self.createAiTank();
+		/*self.createAiTank([250, 50]);
 		self.createAiTank([300, 50]);
 		self.createAiTank([450, 50]);
 		self.createAiTank([600, 50]);
-		self.createAiTank([750, 50]);
-		//self.createWall([300, 300]);
-		self.createMap();
+		self.createAiTank([750, 50]);*/
+		//self.createWall([300, 300]);		
 
 		self.currentId = self.gameObjects.length;
 
@@ -338,46 +373,23 @@ function MainLoop() {
 		
 	};
 
-	/*this.checkPauseSet = function() {
-		for(var pressedCounter = 0; pressedCounter < self.pressedKeys.length; pressedCounter++) {
-			if (self.pressedKeys[pressedCounter] === 'pause') {
-				self.pressedKeys.splice(pressedCounter, 1)
-				setTimeout(self.pauseLoop, 100);
-				return true;
-			};
-		};
-		return false;
-	};
-
-	this.checkPauseReleased = function() {
-		for(var i = 0; i < self.pressedKeys.length; i++) {
-			if (self.pressedKeys[i] === 'pause') {
-				self.pressedKeys.splice(i, 1);
-				setTimeout(self.draw, 1000 / self.fps);
-				return;
-			};
-		};	
-		setTimeout(self.pauseLoop, 100);
-	};*/
-
 	this.createMap = function() {
-		self.createWall([500, 500]);
-		self.createWall([520, 500]);
-		self.createWall([540, 500]);
-		self.createWall([560, 520]);
-		self.createWall([520, 520]);
-		self.createWall([540, 520]);
-		self.createWall([560, 520]);
-		self.createWall([300, 300]);
-		self.createWall([320, 300]);
-		self.createWall([340, 300]);
-		self.createWall([360, 300]);
-		self.createWall([380, 300]);
-		self.createWall([380, 320]);
-		self.createWall([380, 340]);
-		self.createWall([380, 280]);
-		self.createWall([380, 260]);
-		self.createWall([380, 240]);
+		var map = GetMap();
+		for (var i = 0; i < map.length; i++) {
+			for (var j = 0; j < map[i].length; j++) {
+				if(map[i][j][0] === 'brick') {
+					self.createWall([i * tankSize[0] + tankSize[0] / 2, j * tankSize[0] + tankSize[0] / 2]);			
+				};
+
+				if(map[i][j][0] === 'player') {
+					self.playerSpawnPoints.push([i * tankSize[0] + tankSize[0] / 2, j * tankSize[0] + tankSize[0] / 2]);
+				};
+
+				if(map[i][j][0] === 'enemy') {
+					self.enemySpawnPoints.push([i * tankSize[0] + tankSize[0] / 2, j * tankSize[0] + tankSize[0] / 2]);
+				};
+			}
+		}		
 	};
 }
 
