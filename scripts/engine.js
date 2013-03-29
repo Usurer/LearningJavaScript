@@ -11,6 +11,9 @@ function MainLoop() {
 	this.deadObjects = [];
 	this.tileMapTanks = [];
 	this.tileMapWalls = [];
+	
+	this.listForest = [];
+	
 	this.currentId = 0; //the biggest actual object Id
 	this.paused = false; // game is paused if set to true
 
@@ -94,7 +97,7 @@ function MainLoop() {
 
 	this.createWall = function(pos) {
 		var wall = new Wall();				
-		wall.initialize(pos, tankSize, '', 'Green');		
+		wall.initialize(pos, tankSize, 'brick.png', 'Green');		
 
 		/*var canvasWH = [document.getElementById('canvas').offsetWidth, document.getElementById('canvas').offsetHeight];
 		var tileMapWallsWidth = (canvasWH[0] / wall.getSize()[0]) |0;
@@ -106,6 +109,17 @@ function MainLoop() {
 		if (typeof self.tileMapWalls[posX] === 'undefined') self.tileMapWalls[posX] = [];
 		self.tileMapWalls[posX][posY] = wall;
 		wall.id = 'w_' + posX + '_' + posY;
+	};
+
+	this.createForest = function(pos) {
+		var forest = new Sprite();				
+		forest.initialize(pos, tankSize, 'forest.png', 'transparent');				
+
+		var posX = (forest.getPosition()[0] / tankSize[0]) |0;
+		var posY = (forest.getPosition()[1] / tankSize[1]) |0;
+		
+		forest.id = 'f_' + posX + '_' + posY;
+		self.listForest.push(forest);		
 	};
 
 	this.createTank = function(id, commandsMap, coords, color) {
@@ -194,6 +208,10 @@ function MainLoop() {
 		for (var deadWallsCounter = 0; deadWallsCounter < deadWalls.length; deadWallsCounter++) {
 			self.tileMapWalls[deadWalls[deadWallsCounter][0]][deadWalls[deadWallsCounter][1]].remove(canvas);
 			self.tileMapWalls[deadWalls[deadWallsCounter][0]][deadWalls[deadWallsCounter][1]] = undefined;
+		};
+
+		for(var f = 0; f < self.listForest.length; f++) {
+			self.listForest[f].draw(canvas, [['zIndex', '10']]);
 		};
 		
 		for (var j = 0; j < self.gameObjects.length; j++) {
@@ -333,21 +351,10 @@ function MainLoop() {
 
 		self.createFirstTank();
 		//self.createSecondTank();	
-		console.log('AI#1');
-		self.createAiTank();
-		console.log('AI#2');
-		self.createAiTank();
-		console.log('AI#3');
-		self.createAiTank();
-		console.log('AI#4');
-		self.createAiTank();
-		/*self.createAiTank([250, 50]);
-		self.createAiTank([300, 50]);
-		self.createAiTank([450, 50]);
-		self.createAiTank([600, 50]);
-		self.createAiTank([750, 50]);*/
-		//self.createWall([300, 300]);		
-
+		for (var i = 0; i < 4; i++) {
+			self.createAiTank();		
+		};
+		
 		self.currentId = self.gameObjects.length;
 
 		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
@@ -379,6 +386,10 @@ function MainLoop() {
 			for (var j = 0; j < map[i].length; j++) {
 				if(map[i][j][0] === 'brick') {
 					self.createWall([i * tankSize[0] + tankSize[0] / 2, j * tankSize[0] + tankSize[0] / 2]);			
+				};
+
+				if(map[i][j][0] === 'forest') {
+					self.createForest([i * tankSize[0] + tankSize[0] / 2, j * tankSize[0] + tankSize[0] / 2]);			
 				};
 
 				if(map[i][j][0] === 'player') {

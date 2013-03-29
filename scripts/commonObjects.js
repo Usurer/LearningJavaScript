@@ -50,7 +50,7 @@ function Sprite() {
 		self.background = typeof backgroundColor === 'undefined' ? 'Transparent' : backgroundColor;
 	};
 
-	this.draw = function(canvas) {
+	this.draw = function(canvas, specialProperties) {
 		var el = document.getElementById(self.id);
 		if(el == null || typeof el === 'undefined') {
 			if (typeof canvas === 'undefined') return;
@@ -62,12 +62,21 @@ function Sprite() {
 			objDiv.style.position = 'fixed';
 			objDiv.style.top = currentObject.y - currentObject.height/2;
 			objDiv.style.left = currentObject.x - currentObject.width/2;
+			objDiv.style.zIndex = '1';
 			if(typeof self.sprite !== 'undefined' && self.sprite.length > 0) {
 				objDiv.style.backgroundImage = "url(img/" + self.sprite + ')';
 			}
 			else {
 				objDiv.style.background = currentObject.background;
 			};
+			
+			/*specialProperties should be an array of pairs: [[propertyName, propertyValue],[name, value], [...]...]*/
+			if(specialProperties !== undefined) {				
+				for(var sp = 0; sp < specialProperties.length; sp++) {
+					objDiv.style[specialProperties[sp][0]] = specialProperties[sp][1];
+				};
+			};
+			
 			canvas.appendChild(objDiv);				
 		};
 		el = document.getElementById(self.id);
