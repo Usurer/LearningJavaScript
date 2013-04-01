@@ -9,7 +9,7 @@ function CommonObject() {
 	this.isAI = false;
 	this.isEnvironment = false;
 
-	this.hit = function(hitBy, damage) {				
+	this.hit = function(hitBy, damage) {			
 		if(hitBy !== undefined && hitBy instanceof Missile) {			
 			hitBy.dead = true;
 			if (!(hitBy.isAI && self.isAI) && !(hitBy.isPlayer && self.isPlayer)) {
@@ -149,6 +149,7 @@ function MovingObject() {
 		if (typeof args !== 'undefined' && args.length > 2 && (collisionCheckResult = collisionChecker(args[0], args[1], args[2], args[3])) !== undefined) {
 			self.x = self.x - posChangeX;
 			self.y = self.y - posChangeY;			
+			collisionCheckResult.hit(self);
 			return false;
 		};
 		return true;

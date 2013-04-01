@@ -18,10 +18,8 @@ function PossibleCollisions(objectToCheck, tilesMapTanks, canvas, tilesMapWalls)
 	if(objectToCheck.getPosition()[0] < objectToCheck.getSize()[0] / 2
 		|| objectToCheck.getPosition()[0] > canvas.offsetWidth - objectToCheck.getSize()[0] / 2
 		|| objectToCheck.getPosition()[1] < objectToCheck.getSize()[1] / 2
-		|| objectToCheck.getPosition()[1] > canvas.offsetHeight - objectToCheck.getSize()[1] / 2) {
-		
-		new MapBorder().hit(objectToCheck);
-		return true;
+		|| objectToCheck.getPosition()[1] > canvas.offsetHeight - objectToCheck.getSize()[1] / 2) {		
+		return new MapBorder();
 	}
 
 	var tilesX = [tankTileId[0] - 1 < 0 ? 0 : (dir == 'w' || dir == 's' || dir == 'n' ? tankTileId[0] - 1 : tankTileId[0])
@@ -56,8 +54,7 @@ function PossibleCollisions(objectToCheck, tilesMapTanks, canvas, tilesMapWalls)
 		for (var i = 0; i < possibleCollisions.length; i++) {
 			var obstacle = CheckCollision(objectToCheck, possibleCollisions[i]);
 			if (obstacle !== undefined && typeof obstacle.hit === 'function') {				
-				obstacle.hit(objectToCheck);									
-				return true;				
+				return obstacle;				
 			};
 		};		
 	};
@@ -66,7 +63,7 @@ function PossibleCollisions(objectToCheck, tilesMapTanks, canvas, tilesMapWalls)
 
 function GetTankTile(objectToCheck, canvas) {
 	var canvasSize = [canvas.offsetWidth, canvas.offsetHeight];		
-	return [(objectToCheck.getPosition()[0] / /*objectToCheck.getSize()[0]*/tankSize[0]) |0, (objectToCheck.getPosition()[1] / /*objectToCheck.getSize()[1]*/tankSize[1]) |0];
+	return [(objectToCheck.getPosition()[0] / tankSize[0]) |0, (objectToCheck.getPosition()[1] / tankSize[1]) |0];
 };
 
 function CheckCollision(t1, t2) {	
