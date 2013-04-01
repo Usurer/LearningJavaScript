@@ -8,6 +8,17 @@ function CommonObject() {
 	this.isPlayer = false;
 	this.isAI = false;
 	this.isEnvironment = false;
+
+	this.hit = function(hitBy, damage) {				
+		if(hitBy !== undefined && hitBy instanceof Missile) {			
+			hitBy.dead = true;
+			if (!(hitBy.isAI && self.isAI) && !(hitBy.isPlayer && self.isPlayer)) {
+				if (damage === undefined) damage = 25;
+				self.health = self.health - damage;				
+				if (self.health < 0) self.dead = true;
+			};
+		};
+	};
 };
 
 function Sprite() {
@@ -121,7 +132,7 @@ function MovingObject() {
 		self.moves = false;
 	};
 	
-	this.move = function(collisionChecker, args, callback) {
+	this.move = function(collisionChecker, args) {
 		if (!self.moves)
 			return true;
 		var posChangeX = self.speed[0] * (self.direction == 'e' ? 1 : self.direction == 'w' ? -1 : 0);
@@ -137,15 +148,7 @@ function MovingObject() {
 		var collisionCheckResult = undefined;
 		if (typeof args !== 'undefined' && args.length > 2 && (collisionCheckResult = collisionChecker(args[0], args[1], args[2], args[3])) !== undefined) {
 			self.x = self.x - posChangeX;
-			self.y = self.y - posChangeY;
-			if (self instanceof Missile) {
-				self.dead = true; //Missile explodes on collision.
-				/*We don't want to damage our friends.*/
-				if((self.isAI && !collisionCheckResult.isAI) || (self.isPlayer && !collisionCheckResult.isPlayer)) {
-					collisionCheckResult.background = 'Yellow';
-					callback(collisionCheckResult);
-				};
-			};
+			self.y = self.y - posChangeY;			
 			return false;
 		};
 		return true;
@@ -163,7 +166,7 @@ function MovingObject() {
 		}		
 	};	
 
-	this.update = function(collisionChecker, args, callback) {		
+	this.update = function(collisionChecker, args) {		
 		if(self.age > self.maxAge) {
 			self.dead = true;
 		}
@@ -171,7 +174,7 @@ function MovingObject() {
 		if(self.maxAge > 0)
 			self.age++;
 
-		return self.move(collisionChecker, args, callback); // false if obj cannot move, true if can;
+		return self.move(collisionChecker, args); // false if obj cannot move, true if can;
 	};	
 
 	this.moveTo = function(objective) {
@@ -246,20 +249,8 @@ function Tank(){
 		missile.isAI = self.isAI;
 		self.missiles.push(missile);
 		return missile;
-	};
-
-	this.hit = function() {
-		self.health = self.health - 25;		
-		switch (self.health) {
-			case 75: self.background = '#61210B'; break;
-			case 50: self.background = '#8A2908'; break;
-			case 25: self.background = '#FF4000'; break;
-			case 0: self.background = '#F79F81'; break;
-		};
-		if (self.health < 0) self.dead = true;
-	};
-
-}
+	};	
+};
 
 function Missile() {
 	Missile.superclass.constructor.call(this);
@@ -272,19 +263,7 @@ function Missile() {
 
 function Wall() {
 	Wall.superclass.constructor.call(this);
-	var self = this;
-
-	this.hit = function() {
-		self.health = self.health - 25;
-		console.log('H=' + self.health);
-		switch (self.health) {
-			case 75: self.background = '#61210B'; break;
-			case 50: self.background = '#8A2908'; break;
-			case 25: self.background = '#FF4000'; break;
-			case 0: self.background = '#F79F81'; break;
-		};
-		if (self.health < 0) self.dead = true;
-	};
+	var self = this;	
 };
 
 function TankAI() {
@@ -342,6 +321,14 @@ function TankAI() {
 	this.changeDirection = function() {
 		//self.background = 'Magenta';
 		self.movementCommandsCounter = 51;
+	};
+};
+
+function MapBorder() {
+	this.hit = function(hitBy) {
+		console.log('Border hit by ' + hitBy.id);
+		if(hitBy instanceof Missile)
+			hitBy.dead = true;
 	};
 };
 

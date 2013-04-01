@@ -12,7 +12,7 @@ function MainLoop() {
 	this.tileMapTanks = [];
 	this.tileMapWalls = [];
 	
-	this.listForest = [];
+	this.listForest = []; //list of forest tiles
 	
 	this.currentId = 0; //the biggest actual object Id
 	this.paused = false; // game is paused if set to true
@@ -356,11 +356,6 @@ function MainLoop() {
 		};
 		
 		self.currentId = self.gameObjects.length;
-
-		/*Just to check perfomance - 1000 tanks to check collisions etc.*/
-		/*for(var i = 2; i < 1000; i++)	{
-			self.createTank(i, {}, [250, 250], 'Yellow');	
-		}*/
 		
 		document.onkeydown = keyDownHandler;
 		document.onkeyup = keyUpHandler;
