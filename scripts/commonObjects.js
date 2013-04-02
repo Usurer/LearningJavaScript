@@ -244,7 +244,7 @@ function Tank(){
 					[self.getPosition()[0] - self.getSize()[0] / 2 - 5 - 1, self.getPosition()[1]]
 				)
 			);
-		missile.initialize(pos, [10, 10], '', 'White');
+		missile.initialize(pos, [10, 10], 'missile_10x10_n.png', 'White');
 		missile.direction = self.direction;
 		missile.isPlayer = self.isPlayer;
 		missile.isAI = self.isAI;

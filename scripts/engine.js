@@ -125,7 +125,7 @@ function MainLoop() {
 	this.createTank = function(id, commandsMap, coords, color) {
 		var newTank = new Tank(id);
 		newTank.setCommandsMap(commandsMap);
-		newTank.initialize(coords, tankSize, 'tank_20x20_n.png', color);
+		newTank.initialize(coords, tankSize, 'tank_30x30_n.png', color);
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;
 	};
@@ -167,7 +167,7 @@ function MainLoop() {
 		if (pos === undefined) 
 			return;
 		var newTank = new TankAI(self.gameObjects.length);
-		newTank.initialize(pos, tankSize, 'tank_ai_20x20_n.png', 'White');
+		newTank.initialize(pos, tankSize, 'tank_ai_30x30_n.png', 'White');
 		self.gameObjects[newTank.id] = newTank;
 		self.tanks[newTank.id] = newTank;	
 	};	
@@ -233,8 +233,7 @@ function MainLoop() {
 			if(typeof self.gameObjects[j].update !== 'undefined') {
 				if (self.gameObjects[j] instanceof Tank || self.gameObjects[j] instanceof Missile) {										
 					var isStuck = !(self.gameObjects[j].update(PossibleCollisions
-						, [self.gameObjects[j], self.tileMapTanks, canvas, self.tileMapWalls]
-						, self.updateCallback));
+						, [self.gameObjects[j], self.tileMapTanks, canvas, self.tileMapWalls]));
 					if(self.gameObjects[j] instanceof TankAI && isStuck === true) {
 						self.gameObjects[j].changeDirection();
 					};
