@@ -22,6 +22,10 @@ function MainLoop() {
 
 	this.playerSpawnPoints = [];
 	this.enemySpawnPoints = [];
+
+	this.enemiesToRespawn = 10;
+	// second stores const. value, first one is to be used as a counter (I just don't want to have two variables)
+	this.enemiesRespawnTimeout = [this.fps * 10, this.fps * 10]; 
 	
 	var self = this;
 	
@@ -82,7 +86,7 @@ function MainLoop() {
 	Important!
 	What should be done!!! This callback should be removed and collisions processor shoud call hit() function of the object
 	that was hit. If this object explodes, then it doesn't create a new object, but changes it's draw() behaviour. And only after all
-	proper things, like animation, would be finished, the object will put himself to Dead state.*/
+	proper things, like animation, would be finished, the object will put itself to Dead state.*/
 	this.updateCallback = function(updateResult) {
 		if (updateResult !== undefined) {
 			if(typeof updateResult.hit !== 'function') return;
@@ -139,30 +143,38 @@ function MainLoop() {
 	this.createSecondTank = function() {		
 		var map = {'s': 'setDirection', 'n': 'setDirection', 'e': 'setDirection', 'w': 'setDirection', 'RCTRL': 'fire'};
 		self.createTank(1, map, [500, 700], 'Blue');				
-	};	
+	};		
 
 	this.createAiTank = function(pos) {
 		//If no coordinates set - use spawn points
 		if (pos === undefined) {			
-			pos =undefined;
-			for (var i = 0; i < self.enemySpawnPoints.length; i++) {			
+			pos = undefined;
+			
+			/*Hey! I want a spawn point to be selected ramdomly!			
+			So I'm gonna try to get random spawn point as many times as many spawn point exist. It's not precise, but good enough.*/
+			var i = self.enemySpawnPoints.length;
+			var randomPoint = 0
+
+			while (i > 0) {
+				randomPoint = RandomFromRange(0, self.enemySpawnPoints.length); // taken from utils.js
 				for (var j = 0; j < self.tanks.length; j++) {
 					if(self.tanks[j] instanceof Tank) {
-						var tooCloseX = Math.abs(self.enemySpawnPoints[i][0] - self.tanks[j].getPosition()[0]) < (2 * tankSize[0]);
-						var tooCloseY = Math.abs(self.enemySpawnPoints[i][1] - self.tanks[j].getPosition()[1]) < (2 * tankSize[1]);
+						var tooCloseX = Math.abs(self.enemySpawnPoints[randomPoint][0] - self.tanks[j].getPosition()[0]) < (2 * tankSize[0]);
+						var tooCloseY = Math.abs(self.enemySpawnPoints[randomPoint][1] - self.tanks[j].getPosition()[1]) < (2 * tankSize[1]);
 						if(tooCloseX && tooCloseY) {
 							/*If any tank is too close - search for another spawner. 
 							If pos is set already it will reset the value, because it's wrong.*/
 							pos = undefined
 							break;
 						};						
-						pos = self.enemySpawnPoints[i];					
+						pos = self.enemySpawnPoints[randomPoint];					
 					};
 				};
 				/*If position is set - don't search for another spawn points*/
 				if (pos !== undefined) break;
+				i = i - 1;
 			};
-		}
+		};
 		
 		if (pos === undefined) 
 			return;
@@ -183,6 +195,15 @@ function MainLoop() {
 			setTimeout(self.draw, timeout); 
 			return;
 		};
+
+		if(self.enemiesToRespawn > 0 && self.enemiesRespawnTimeout[0] === 0) {
+			self.createAiTank();			
+			self.enemiesToRespawn = self.enemiesToRespawn - 1;
+			self.enemiesRespawnTimeout[0] = self.enemiesRespawnTimeout[1];
+		}
+		else {
+			self.enemiesRespawnTimeout[0] = self.enemiesRespawnTimeout[0] - 1;
+		}
 		
 		/*Here are the bad news - we cannot fire missile from the Tank class in current object model realization, because only game engine has access to gameObjects, globals etc. I see three ways to solve the problem:
 		1. This is what I've started to do first - if 'fire' is pressed, then game engine will emulate the fire.
@@ -374,8 +395,8 @@ function MainLoop() {
 		
 	};
 
-	this.createMap = function() {
-		var map = GetMap();
+	this.createMap = function() {		
+		var map = GetMap(); //taken mrom /maps/01.js file; it's content is copypasted from a map editor output;
 		for (var i = 0; i < map.length; i++) {
 			for (var j = 0; j < map[i].length; j++) {
 				if(map[i][j][0] === 'brick') {
